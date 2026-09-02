@@ -1,0 +1,14 @@
+{
+  "name": "리페어 브릿지",
+  "short_name": "리페어",
+  "description": "고장난 물건을 고쳐 쓰도록 돕고, 수리 실패 기록을 정책 근거 데이터로 모으는 앱",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#E3E5E0",
+  "theme_color": "#2F6B5E",
+  "lang": "ko",
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

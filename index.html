@@ -1,0 +1,942 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리페어 브릿지</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#2F6B5E">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="리페어 브릿지">
+<style>
+:root {
+  --ink: #1C211F;
+  --paper: #E3E5E0;
+  --card: #F5F6F3;
+  --patina: #2F6B5E;
+  --brass: #9A7B1F;
+  --rust: #9E3B2A;
+  --line: #C0C3BC;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+#app { max-width: 480px; margin: 0 auto; padding-bottom: 34px; min-height: 100vh; }
+
+.top { padding: 22px 20px 16px; display: flex; gap: 12px; align-items: center; }
+.glyph { font-size: 30px; color: var(--patina); line-height: 1; }
+.top h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+.top p { margin: 2px 0 0; font-size: 12.5px; color: #5C6260; }
+
+.tabs { display: flex; padding: 0 20px; border-bottom: 1px solid var(--line); }
+.tabs button {
+  flex: 1; background: none; border: none; cursor: pointer; font: inherit;
+  padding: 10px 4px; font-size: 13.5px; color: #6B716E;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tabs button.on { color: var(--patina); font-weight: 700; border-bottom-color: var(--patina); }
+.tabs button:focus-visible, .drop:focus-visible, textarea:focus, .cta:focus-visible {
+  outline: 2px solid var(--patina); outline-offset: 2px;
+}
+
+main { padding: 18px 20px 0; }
+.hide { display: none; }
+.lede { font-size: 13.5px; line-height: 1.65; color: #4A504E; margin: 0 0 16px; }
+.empty { font-size: 13.5px; color: #737977; line-height: 1.6; }
+.sub { display: block; font-size: 11.5px; color: #737977; margin-top: 3px; line-height: 1.5; }
+
+.drop {
+  position: relative;
+  border: 1.5px dashed var(--line); border-radius: 4px; background: var(--card);
+  min-height: 170px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; overflow: hidden; width: 100%; padding: 0;
+}
+.drop.over { border-color: var(--patina); background: #DCE7E3; }
+.drop input[type=file] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; z-index: 2;
+}
+.drop:focus-within { outline: 2px solid var(--patina); outline-offset: 2px; }
+.drop-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #6B716E; font-size: 13px; font-family: inherit; }
+.ghost { width: 100%; margin-top: 8px; padding: 11px; cursor: pointer;
+  background: none; border: 1px solid var(--line); border-radius: 4px;
+  color: #5C6260; font: inherit; font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 7px 12px; font: inherit; font-size: 12.5px; color: #4A504E; cursor: pointer; }
+.chip.on { background: var(--patina); border-color: var(--patina); color: #F5F6F3; font-weight: 600; }
+.q { margin-bottom: 16px; }
+.q-label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #3A403E; }
+.freein { width: 100%; padding: 9px 11px; font: inherit; font-size: 12.5px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--card); color: var(--ink); }
+.freein:focus { outline: 2px solid var(--patina); outline-offset: 2px; }
+.dg { width: 100%; height: auto; margin: 4px 0 2px; display: block; }
+.dg .fr { fill: #FFFFFF; stroke: var(--line); stroke-width: 1; }
+.dg .ln { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.dg .ac { fill: none; stroke: var(--patina); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.dg .dsh { fill: none; stroke: #9AA09D; stroke-width: 1.2; stroke-dasharray: 3 3; }
+.dg .fl, .dg .fl2 { fill: var(--patina); stroke: none; }
+.dg .warn { fill: none; stroke: var(--rust); stroke-width: 2.2; stroke-linecap: round; }
+.dg .bd { fill: var(--patina); }
+.dg .nm { fill: #F5F6F3; font-size: 9px; font-weight: 700; text-anchor: middle; }
+.dg .cp { fill: #5C6260; font-size: 9.5px; text-anchor: middle; }
+.composed { margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line); }
+.demo { margin: -16px -16px 12px; padding: 8px 14px; background: var(--brass);
+  color: #F5F6F3; font-size: 11.5px; line-height: 1.5; }
+.opt { margin-top: 14px; }
+.opt summary { font-size: 12.5px; color: #737977; cursor: pointer; padding: 6px 0; }
+.opt .drop { margin-top: 8px; min-height: 130px; }
+.drop-icon { font-size: 26px; color: var(--patina); }
+.drop img { width: 100%; max-height: 260px; object-fit: cover; display: block; }
+
+textarea {
+  width: 100%; margin-top: 10px; padding: 11px 12px; font: inherit; font-size: 13.5px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--card);
+  color: var(--ink); resize: vertical;
+}
+
+.cta {
+  width: 100%; margin-top: 12px; padding: 13px; cursor: pointer;
+  background: var(--patina); color: #F5F6F3; border: none; border-radius: 4px;
+  font: inherit; font-size: 14.5px; font-weight: 700;
+}
+.cta[disabled] { background: #A9AEAB; cursor: default; }
+.cta.dark { background: var(--ink); }
+.err { color: var(--rust); font-size: 13px; margin-top: 10px; }
+
+.slip { margin-top: 18px; background: var(--card); border: 1px solid var(--line);
+  border-top: 3px solid var(--patina); border-radius: 3px; padding: 16px; }
+.slip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.slip h2 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.3px; }
+.cat { font-size: 11.5px; color: var(--brass); font-weight: 600; }
+.serial { font-size: 10.5px; color: #8A908D; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.verdict { margin: 12px 0 4px; padding: 9px 12px; border-radius: 3px;
+  background: #DCE7E3; color: var(--patina); font-weight: 800; font-size: 15px;
+  display: flex; justify-content: space-between; align-items: baseline; }
+.verdict[data-level="전문가 필요"] { background: #EFE6CC; color: var(--brass); }
+.verdict[data-level="수리 불가"] { background: #EEDBD6; color: var(--rust); }
+.verdict em { font-style: normal; font-size: 11.5px; font-weight: 500; opacity: .8; }
+
+.row { padding: 11px 0; border-bottom: 1px solid var(--line); }
+.row:last-of-type { border-bottom: none; }
+.row-label { display: block; font-size: 11.5px; color: #7A807D; margin-bottom: 4px; }
+.row-body { font-size: 13.5px; line-height: 1.6; }
+.row-body ol { margin: 0; padding-left: 18px; }
+.row-body li { margin-bottom: 5px; }
+
+.flag { color: var(--rust); font-weight: 700; }
+.ok { color: var(--patina); font-weight: 700; }
+
+.safety { margin: 10px 0 0; padding: 10px 12px; font-size: 12.5px; line-height: 1.55;
+  background: #EEDBD6; color: var(--rust); border-radius: 3px; }
+.gain { margin-top: 12px; padding: 12px; background: #DCE7E3; border-radius: 3px;
+  font-size: 14px; color: var(--patina); }
+.gain b { font-size: 19px; }
+.eu { margin-top: 10px; font-size: 11.5px; line-height: 1.6; color: #5C6260;
+  border-left: 2px solid var(--brass); padding-left: 10px; }
+
+.stats { display: flex; gap: 8px; margin-bottom: 18px; }
+.stats > div { flex: 1; background: var(--card); border: 1px solid var(--line);
+  border-radius: 3px; padding: 12px 8px; text-align: center; }
+.stats b { display: block; font-size: 21px; color: var(--patina); font-variant-numeric: tabular-nums; }
+.stats span { font-size: 10.5px; color: #737977; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: flex; gap: 11px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.list img { width: 46px; height: 46px; object-fit: cover; border-radius: 3px; flex-shrink: 0; }
+.list b { font-size: 14px; }
+
+.reset { margin-top: 18px; background: none; border: 1px solid var(--line);
+  color: #737977; padding: 9px 14px; border-radius: 3px; cursor: pointer; font: inherit; font-size: 12.5px; }
+
+.bigstat { background: var(--ink); color: var(--card); border-radius: 3px;
+  padding: 20px; text-align: center; margin-bottom: 16px; }
+.bigstat b { display: block; font-size: 40px; font-weight: 800; line-height: 1; color: #E8C86A; font-variant-numeric: tabular-nums; }
+.bigstat span { font-size: 12.5px; opacity: .85; }
+
+.bars { display: flex; flex-direction: column; gap: 7px; }
+.bar { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+.bar > span { width: 62px; flex-shrink: 0; color: #4A504E; }
+.bar > i { height: 15px; background: var(--rust); border-radius: 2px; min-width: 5px; }
+.bar > em { font-style: normal; font-size: 11.5px; color: #737977; }
+
+.lost { font-size: 13px; color: var(--rust); margin: 14px 0 0; }
+.brief { margin-top: 14px; padding: 14px; background: var(--card);
+  border: 1px solid var(--line); border-left: 3px solid var(--brass);
+  border-radius: 3px; font: inherit; font-size: 13px; line-height: 1.75;
+  white-space: pre-wrap; word-break: keep-all; }
+
+footer { margin-top: 26px; padding: 0 20px; font-size: 11px; color: #868C89; line-height: 1.6; }
+</style>
+
+<div id="app">
+  <div class="top">
+    <span class="glyph">&#8635;</span>
+    <div>
+      <h1>리페어 브릿지</h1>
+      <p>수리할 권리를 앱으로 구현하다</p>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button id="t1" class="on">진단</button>
+    <button id="t2">수리 이력</button>
+    <button id="t3">수리권 데이터</button>
+  </nav>
+
+  <main>
+    <section id="s1">
+      <p class="lede">질문에 답하면 진단 요청서가 자동으로 작성됩니다. 고장 원인, 자가수리 가능 여부, 예상 비용, 부품 조달 상황을 알려드립니다.</p>
+
+      <div id="quiz"></div>
+
+      <div class="composed">
+        <span class="row-label">진단 요청 내용 (직접 고쳐도 됩니다)</span>
+        <textarea id="note" rows="3" placeholder="위 질문에 답하거나 여기에 직접 적어주세요"></textarea>
+      </div>
+
+      <button class="cta" id="run" disabled>진단 받기</button>
+
+      <details class="opt">
+        <summary>사진 첨부 (선택)</summary>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/*">
+          <span class="drop-empty" id="dropinner"><span class="drop-icon">&#43;</span><span>사진 선택 · 끌어놓기 · 붙여넣기</span></span>
+        </label>
+      </details>
+      <div id="out"></div>
+    </section>
+
+    <section id="s2" class="hide"></section>
+    <section id="s3" class="hide"></section>
+  </main>
+
+  <footer>탄소 절감량은 제품군별 제조 단계 배출 추정치를 기준으로 계산한 값입니다.</footer>
+</div>
+
+<script>
+var CO2 = { "스마트폰":55, "노트북":300, "태블릿":100, "소형가전":30, "대형가전":500, "의류":15, "가구":45, "기타":20 };
+var EU_SCOPE = ["스마트폰","태블릿","대형가전"];
+var KEY = "repairbridge:records:v1";
+
+var records = [];
+var img = null, b64 = null, mime = "image/jpeg", current = null;
+var demoMode = false;
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function num(n) { return (Number(n) || 0).toLocaleString(); }
+
+/* 저장 — 배포 환경에서는 브라우저 저장소를 쓴다 */
+async function load() {
+  try {
+    if (window.storage) {
+      var r = await window.storage.get(KEY);
+      if (r && r.value) { records = JSON.parse(r.value); return; }
+    }
+    var s = localStorage.getItem(KEY);
+    if (s) records = JSON.parse(s);
+  } catch (e) { records = []; }
+}
+async function save() {
+  try {
+    if (window.storage) { await window.storage.set(KEY, JSON.stringify(records)); return true; }
+    localStorage.setItem(KEY, JSON.stringify(records));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/* 탭 */
+function tab(n) {
+  [1,2,3].forEach(function(i){
+    document.getElementById("t"+i).className = (i===n ? "on" : "");
+    document.getElementById("s"+i).className = (i===n ? "" : "hide");
+  });
+  if (n===2) drawHistory();
+  if (n===3) drawPolicy();
+}
+document.getElementById("t1").onclick = function(){ tab(1); };
+document.getElementById("t2").onclick = function(){ tab(2); };
+document.getElementById("t3").onclick = function(){ tab(3); };
+
+/* 사진 */
+var fileEl = document.getElementById("file");
+var dropEl = document.getElementById("drop");
+var thumb = null;
+
+/* 이력 저장용으로 96px 썸네일을 따로 만든다 (원본은 용량이 커서 저장에 실패함) */
+function makeThumb(dataURL, done) {
+  var im = new Image();
+  im.onload = function() {
+    var side = 96, cv = document.createElement("canvas");
+    cv.width = side; cv.height = side;
+    var scale = Math.max(side / im.width, side / im.height);
+    var w = im.width * scale, h = im.height * scale;
+    cv.getContext("2d").drawImage(im, (side - w) / 2, (side - h) / 2, w, h);
+    try { done(cv.toDataURL("image/jpeg", 0.7)); } catch (e) { done(null); }
+  };
+  im.onerror = function(){ done(null); };
+  im.src = dataURL;
+}
+
+function accept(f) {
+  if (!f) return;
+  var isImage = (f.type && f.type.indexOf("image") === 0) ||
+                /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(f.name || "");
+  if (!isImage) return;
+  mime = (f.type && f.type.indexOf("image") === 0) ? f.type : "image/jpeg";
+  var rd = new FileReader();
+  rd.onload = function() {
+    img = rd.result;
+    b64 = String(rd.result).split(",")[1];
+    thumb = null;
+    makeThumb(img, function(t){ thumb = t; });
+    document.getElementById("dropinner").innerHTML = '<img src="' + img + '" alt="올린 사진">';
+    document.getElementById("out").innerHTML = "";
+    current = null;
+    sync();
+  };
+  rd.onerror = function() {
+    document.getElementById("out").innerHTML = '<p class="err">사진을 읽지 못했습니다. 다른 파일로 시도해 주세요.</p>';
+  };
+  rd.readAsDataURL(f);
+}
+
+fileEl.onchange = function(e) { accept(e.target.files && e.target.files[0]); };
+
+["dragenter","dragover"].forEach(function(ev){
+  dropEl.addEventListener(ev, function(e){ e.preventDefault(); dropEl.classList.add("over"); });
+});
+["dragleave","drop"].forEach(function(ev){
+  dropEl.addEventListener(ev, function(e){ e.preventDefault(); dropEl.classList.remove("over"); });
+});
+dropEl.addEventListener("drop", function(e){
+  if (e.dataTransfer && e.dataTransfer.files) accept(e.dataTransfer.files[0]);
+});
+window.addEventListener("paste", function(e){
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") === 0) { accept(items[i].getAsFile()); break; }
+  }
+});
+
+/* ── 질의응답 입력 ── */
+var Q = [
+  { id:"item", label:"1. 무엇이 고장났나요?", type:"one", free:"직접 입력", opts:[
+    "무선 마우스","키보드","선풍기","냉장고","세탁기","스마트폰","노트북","무선 이어폰","의류·지퍼","의자·가구" ] },
+  { id:"age", label:"2. 얼마나 쓰셨나요?", type:"one", opts:[
+    "1년 미만","1~3년","3~7년","7년 이상","기억나지 않음" ] },
+  { id:"symp", label:"3. 어떤 증상인가요? (여러 개 선택 가능)", type:"many", free:"직접 입력", opts:[
+    "전원이 안 켜짐","켜지는데 작동은 안 됨","작동이 자꾸 끊김","이상한 소리·진동","충전이 안 됨",
+    "물이 새거나 눅눅함","냄새·발열","부품이 헐거워짐","깨지거나 찢어짐" ] },
+  { id:"tried", label:"4. 이미 해보신 것이 있나요? (여러 개 선택 가능)", type:"many", opts:[
+    "아직 아무것도","청소해봄","껐다 켜봄·초기화","케이블·배터리 바꿔봄","분해해봄" ] },
+  { id:"parts", label:"5. 부품에 대해 안내받은 내용이 있나요?", type:"one", opts:[
+    "문의한 적 없음","부품이 있다고 함","단종됐다고 함","수리비가 새것과 비슷하다고 함" ] }
+];
+
+var A = {};
+
+function renderQuiz() {
+  var html = Q.map(function(q){
+    var opts = q.opts.map(function(o){
+      var on = (q.type === "one") ? (A[q.id] === o) : ((A[q.id]||[]).indexOf(o) >= 0);
+      return '<button class="chip' + (on ? " on" : "") + '" data-q="' + q.id + '" data-o="' + esc(o) + '">' + esc(o) + "</button>";
+    }).join("");
+    var free = q.free
+      ? '<input class="freein" data-q="' + q.id + '" placeholder="' + q.free + '" value="' +
+        esc(A[q.id + "_free"] || "") + '">'
+      : "";
+    return '<div class="q"><span class="q-label">' + q.label + "</span>" +
+           '<div class="chips">' + opts + "</div>" + free + "</div>";
+  }).join("");
+  document.getElementById("quiz").innerHTML = html + '<button class="ghost" id="clearq">답변 지우기</button>';
+
+  Array.prototype.forEach.call(document.querySelectorAll("#quiz .chip"), function(c){
+    c.onclick = function(){
+      var q = c.getAttribute("data-q"), o = c.getAttribute("data-o");
+      var def = Q.filter(function(x){ return x.id === q; })[0];
+      if (def.type === "one") {
+        A[q] = (A[q] === o) ? null : o;
+      } else {
+        var arr = A[q] || [];
+        var i = arr.indexOf(o);
+        if (i >= 0) arr.splice(i, 1); else arr.push(o);
+        A[q] = arr;
+      }
+      renderQuiz(); compose();
+    };
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#quiz .freein"), function(inp){
+    inp.oninput = function(){ A[inp.getAttribute("data-q") + "_free"] = inp.value; compose(); };
+  });
+  document.getElementById("clearq").onclick = function(){
+    A = {}; renderQuiz(); noteEl.value = ""; sync();
+  };
+}
+
+function compose() {
+  var item = [A.item, A.item_free].filter(Boolean).join(" ").trim();
+  var symp = ((A.symp || []).concat(A.symp_free ? [A.symp_free] : [])).filter(Boolean);
+  var tried = (A.tried || []).filter(function(t){ return t !== "아직 아무것도"; });
+
+  var parts = [];
+  if (item) parts.push(item + (A.age && A.age !== "기억나지 않음" ? ", " + A.age + " 사용" : ""));
+  else if (A.age) parts.push(A.age + " 사용한 물건");
+  if (symp.length) parts.push("증상: " + symp.join(", "));
+  if (tried.length) parts.push("이미 해본 것: " + tried.join(", "));
+  else if ((A.tried || []).length) parts.push("아직 아무 조치도 하지 않음");
+  if (A.parts === "부품이 있다고 함") parts.push("제조사에서 부품이 있다고 안내받음");
+  if (A.parts === "단종됐다고 함") parts.push("제조사에서 부품이 단종됐다고 안내받음");
+  if (A.parts === "수리비가 새것과 비슷하다고 함") parts.push("수리비가 새 제품 가격과 비슷하다는 안내를 받음");
+
+  noteEl.value = parts.join(". ") + (parts.length ? "." : "");
+  document.getElementById("out").innerHTML = "";
+  current = null;
+  sync();
+}
+
+var noteEl = document.getElementById("note");
+function sync() {
+  document.getElementById("run").disabled = !(noteEl.value.trim() || b64);
+}
+noteEl.addEventListener("input", sync);
+renderQuiz();
+sync();
+
+/* ── 수리 도해 ──
+   외부 이미지를 불러오지 않고 앱 안에서 직접 그린다.
+   저작권 문제가 없고 오프라인에서도 표시된다. */
+function pnl(x, n, cap, body) {
+  return '<g transform="translate(' + x + ',0)">' +
+    '<rect x="0" y="0" width="100" height="86" rx="3" class="fr"/>' + body +
+    '<circle cx="11" cy="11" r="7.5" class="bd"/>' +
+    '<text x="11" y="14.3" class="nm">' + n + '</text>' +
+    '<text x="50" y="103" class="cp">' + cap + '</text></g>';
+}
+function svgWrap(inner) {
+  return '<svg viewBox="0 0 320 112" class="dg" role="img">' + inner + '</svg>';
+}
+
+var MOUSE = 'M50 20 C63 20 71 35 71 50 C71 65 62 73 50 73 C38 73 29 65 29 50 C29 35 37 20 50 20Z';
+
+var DIAGRAMS = {
+  keyboard: svgWrap(
+    pnl(0,1,"안 되는 키 확인",
+      '<rect x="18" y="28" width="64" height="34" rx="3" class="ln"/>' +
+      '<path d="M24 36 h10 M38 36 h10 M52 36 h10 M66 36 h10 M24 46 h10 M38 46 h10 M52 46 h10 M66 46 h10 M30 56 h40" class="dsh"/>' +
+      '<rect x="36" y="42" width="12" height="8" rx="1.5" class="ac"/>') +
+    pnl(110,2,"키캡 분리",
+      '<rect x="34" y="46" width="22" height="14" rx="2" class="ln"/>' +
+      '<rect x="38" y="24" width="22" height="12" rx="2" class="ac"/>' +
+      '<path d="M49 38 V44" class="dsh"/><path d="M45 40 l4 -5 l4 5" class="ac"/>') +
+    pnl(220,3,"이물질 제거·접점 세척",
+      '<rect x="30" y="44" width="40" height="18" rx="2" class="ln"/>' +
+      '<circle cx="42" cy="53" r="2" class="fl"/><circle cx="54" cy="51" r="2.4" class="fl"/>' +
+      '<path d="M50 42 L64 22" class="ln"/><path d="M62 22 l5 -2" class="ln"/>')),
+
+  mouse: svgWrap(
+    pnl(0,1,"바닥 패드와 나사",
+      '<path d="' + MOUSE + '" class="ln"/>' +
+      '<rect x="38" y="26" width="24" height="6" rx="3" class="dsh"/>' +
+      '<rect x="38" y="62" width="24" height="6" rx="3" class="dsh"/>' +
+      '<circle cx="50" cy="35" r="2.4" class="ac"/><circle cx="50" cy="66" r="2.4" class="ac"/>') +
+    pnl(110,2,"클릭 스위치 확인",
+      '<path d="' + MOUSE + '" class="ln"/><path d="M29 46 H71" class="dsh"/>' +
+      '<rect x="42" y="52" width="16" height="12" rx="2" class="ac"/>') +
+    pnl(220,3,"접점 세척·교체",
+      '<rect x="42" y="52" width="16" height="12" rx="2" class="ac"/>' +
+      '<path d="M50 50 L64 26" class="ln"/><ellipse cx="66" cy="23" rx="5" ry="7" class="ln" transform="rotate(28 66 23)"/>')),
+
+  fan: svgWrap(
+    pnl(0,1,"전원 차단",
+      '<circle cx="50" cy="46" r="26" class="ln"/><circle cx="50" cy="46" r="17" class="dsh"/>' +
+      '<circle cx="50" cy="46" r="8" class="dsh"/><path d="M50 72 V80 M38 80 H62" class="ln"/>') +
+    pnl(110,2,"날개 분리",
+      '<circle cx="50" cy="46" r="7" class="ac"/>' +
+      '<path d="M50 39 C60 28 68 32 62 42 Z M57 50 C70 54 70 63 59 60 Z M43 50 C36 62 28 60 33 50 Z" class="ln"/>' +
+      '<path d="M76 30 L86 22" class="ln"/><path d="M86 22 l-6 1 l1 -6" class="fl2"/>') +
+    pnl(220,3,"축 청소·윤활",
+      '<circle cx="50" cy="52" r="9" class="ac"/><path d="M50 52 V26" class="ln"/>' +
+      '<path d="M44 26 h12 v-8 h-12 z" class="ln"/><path d="M36 62 q14 8 28 0" class="dsh"/>')),
+
+  fridge: svgWrap(
+    pnl(0,1,"전원 차단·비우기",
+      '<rect x="30" y="16" width="40" height="58" rx="3" class="ln"/>' +
+      '<path d="M30 36 H70" class="ln"/><path d="M64 26 V32 M64 44 V52" class="ln"/>') +
+    pnl(110,2,"배수구 확인",
+      '<rect x="30" y="16" width="40" height="58" rx="3" class="ln"/>' +
+      '<ellipse cx="50" cy="64" rx="7" ry="3.5" class="ac"/>' +
+      '<path d="M50 40 V57" class="dsh"/><path d="M46 53 l4 5 l4 -5" class="ac"/>') +
+    pnl(220,3,"막힘 제거",
+      '<ellipse cx="50" cy="60" rx="9" ry="4.5" class="ac"/>' +
+      '<path d="M50 56 V24" class="ln"/><path d="M45 24 q5 -8 10 0" class="ln"/>' +
+      '<path d="M34 68 q16 6 32 0" class="dsh"/>')),
+
+  phone: svgWrap(
+    pnl(0,1,"전원 끄기",
+      '<rect x="36" y="14" width="28" height="58" rx="4" class="ln"/>' +
+      '<path d="M44 20 H56" class="ln"/><rect x="44" y="66" width="12" height="3" rx="1.5" class="ac"/>') +
+    pnl(110,2,"단자 안 확인",
+      '<circle cx="50" cy="44" r="24" class="ln"/>' +
+      '<rect x="36" y="40" width="28" height="9" rx="4.5" class="ac"/>' +
+      '<circle cx="43" cy="45" r="1.6" class="fl"/><circle cx="52" cy="46" r="2" class="fl"/>' +
+      '<circle cx="58" cy="44" r="1.4" class="fl"/>') +
+    pnl(220,3,"이물질 제거",
+      '<rect x="30" y="52" width="40" height="10" rx="5" class="ac"/>' +
+      '<path d="M50 52 L62 24" class="ln"/><path d="M60 24 l4 -1" class="ln"/>')),
+
+  laptop: svgWrap(
+    pnl(0,1,"전원·배터리 분리",
+      '<path d="M28 60 H72 L78 70 H22 Z" class="ln"/>' +
+      '<rect x="32" y="22" width="36" height="38" rx="2" class="ln"/>' +
+      '<circle cx="34" cy="66" r="1.8" class="ac"/><circle cx="66" cy="66" r="1.8" class="ac"/>') +
+    pnl(110,2,"팬 먼지 제거",
+      '<rect x="24" y="20" width="52" height="52" rx="3" class="ln"/>' +
+      '<circle cx="42" cy="42" r="12" class="ac"/><path d="M42 30 V42 L52 48" class="ac"/>' +
+      '<path d="M60 30 V62 M66 30 V62 M72 30 V62" class="dsh"/>') +
+    pnl(220,3,"서멀 구리스 도포",
+      '<rect x="34" y="34" width="32" height="28" rx="2" class="ln"/>' +
+      '<circle cx="44" cy="44" r="2.4" class="fl"/><circle cx="56" cy="44" r="2.4" class="fl"/>' +
+      '<circle cx="50" cy="54" r="2.4" class="fl"/><path d="M50 34 V22" class="dsh"/>')),
+
+  zipper: svgWrap(
+    pnl(0,1,"벌어짐 확인",
+      '<path d="M42 16 V44 M58 16 V44" class="ln"/>' +
+      '<path d="M38 52 L30 76 M62 52 L70 76" class="ln"/>' +
+      '<rect x="40" y="44" width="20" height="10" rx="2" class="ac"/>') +
+    pnl(110,2,"슬라이더 오므리기",
+      '<rect x="40" y="40" width="20" height="12" rx="2" class="ac"/>' +
+      '<path d="M20 46 L36 40 M20 46 L36 52" class="ln"/>' +
+      '<path d="M80 46 L64 40 M80 46 L64 52" class="ln"/>') +
+    pnl(220,3,"물림 확인",
+      '<path d="M46 14 V70 M54 14 V70" class="ln"/>' +
+      '<path d="M46 22 H54 M46 32 H54 M46 42 H54 M46 52 H54 M46 62 H54" class="ac"/>')),
+
+  chair: svgWrap(
+    pnl(0,1,"규격 확인",
+      '<path d="M34 20 H66 M34 20 V34 M66 20 V34" class="ln"/>' +
+      '<path d="M30 40 H70" class="ln"/><path d="M50 40 V60" class="ac"/>' +
+      '<path d="M34 72 L50 60 L66 72" class="ln"/>') +
+    pnl(110,2,"실린더 분리",
+      '<path d="M50 30 V58" class="ac"/><path d="M36 66 L50 58 L64 66" class="ln"/>' +
+      '<rect x="24" y="20" width="18" height="10" rx="2" class="ln"/><path d="M42 25 H58" class="ln"/>') +
+    pnl(220,3,"새 실린더 장착",
+      '<path d="M50 26 V58" class="ac"/><path d="M44 26 h12" class="ac"/>' +
+      '<path d="M36 66 L50 58 L64 66" class="ln"/><path d="M62 36 l8 -8 l-1 6 l6 -1 z" class="fl"/>')),
+
+  earbuds: svgWrap(
+    pnl(0,1,"접점 세척",
+      '<path d="M40 24 q14 -6 20 6 q6 14 -6 20 q-14 6 -18 -8 z" class="ln"/>' +
+      '<path d="M46 52 q4 12 -2 18" class="ln"/><path d="M34 68 q16 6 32 0" class="dsh"/>') +
+    pnl(110,2,"접착 밀봉 확인",
+      '<path d="M40 24 q14 -6 20 6 q6 14 -6 20 q-14 6 -18 -8 z" class="ln"/>' +
+      '<path d="M34 40 H70" class="dsh"/>' +
+      '<path d="M60 58 L76 74 M76 58 L60 74" class="warn"/>') +
+    pnl(220,3,"수거함 배출",
+      '<path d="M28 34 H72 L66 74 H34 Z" class="ln"/><path d="M24 34 H76" class="ln"/>' +
+      '<path d="M44 46 l6 10 l6 -10" class="ac"/><path d="M40 20 h20 v10 h-20 z" class="dsh"/>')),
+
+  washer: svgWrap(
+    pnl(0,1,"전원·수도 차단",
+      '<rect x="26" y="14" width="48" height="60" rx="3" class="ln"/>' +
+      '<circle cx="50" cy="46" r="17" class="ln"/><circle cx="50" cy="46" r="11" class="dsh"/>' +
+      '<circle cx="34" cy="22" r="2.4" class="ac"/>') +
+    pnl(110,2,"배수 필터 열기",
+      '<rect x="26" y="14" width="48" height="60" rx="3" class="ln"/>' +
+      '<rect x="32" y="60" width="16" height="10" rx="2" class="ac"/>' +
+      '<path d="M48 65 L62 65" class="ln"/><path d="M58 61 l5 4 l-5 4" class="ln"/>') +
+    pnl(220,3,"이물질 제거",
+      '<rect x="34" y="30" width="32" height="26" rx="3" class="ac"/>' +
+      '<circle cx="44" cy="43" r="2.2" class="fl"/><circle cx="54" cy="40" r="2.6" class="fl"/>' +
+      '<circle cx="50" cy="49" r="1.8" class="fl"/><path d="M30 66 q20 8 40 0" class="dsh"/>')),
+
+  generic: svgWrap(
+    pnl(0,1,"증상 기록",
+      '<rect x="32" y="18" width="36" height="48" rx="3" class="ln"/>' +
+      '<path d="M40 32 H60 M40 42 H60 M40 52 H52" class="dsh"/>') +
+    pnl(110,2,"외부 요인 배제",
+      '<rect x="30" y="30" width="24" height="26" rx="3" class="ln"/>' +
+      '<path d="M54 43 q12 0 16 -10" class="ac"/><circle cx="72" cy="30" r="4" class="ln"/>') +
+    pnl(220,3,"부품 보유 문의",
+      '<rect x="38" y="18" width="24" height="44" rx="4" class="ln"/>' +
+      '<path d="M46 26 H54" class="ln"/>' +
+      '<path d="M64 30 q10 -6 10 6 q0 12 -10 6" class="ac"/>'))
+};
+
+var DG_KEY = [
+  { k:["키보드","키캡","자판"], d:"keyboard" },
+  { k:["마우스","트랙","웹캠"], d:"mouse" },
+  { k:["선풍기","서큘","환풍","팬 "], d:"fan" },
+  { k:["냉장고","제빙","김치"], d:"fridge" },
+  { k:["스마트폰","아이폰","갤럭시","휴대폰","핸드폰","태블릿","패드"], d:"phone" },
+  { k:["노트북","랩탑","맥북"], d:"laptop" },
+  { k:["지퍼","패딩","의류","옷","자켓","코트","가방"], d:"zipper" },
+  { k:["의자","책상","서랍","가구","선반","침대"], d:"chair" },
+  { k:["이어폰","헤드폰","버즈","에어팟"], d:"earbuds" },
+  { k:["세탁","건조기","식기세척"], d:"washer" }
+];
+var DG_CAT = { "스마트폰":"phone", "태블릿":"phone", "노트북":"laptop",
+  "의류":"zipper", "가구":"chair", "대형가전":"washer", "소형가전":"mouse" };
+
+function pickDiagram(name, category) {
+  var t = String(name || "").toLowerCase();
+  for (var i = 0; i < DG_KEY.length; i++) {
+    for (var j = 0; j < DG_KEY[i].k.length; j++) {
+      if (t.indexOf(DG_KEY[i].k[j].toLowerCase()) >= 0) return DIAGRAMS[DG_KEY[i].d];
+    }
+  }
+  var byCat = DG_CAT[category];
+  return (byCat && DIAGRAMS[byCat]) ? DIAGRAMS[byCat] : DIAGRAMS.generic;
+}
+
+/* ── 오프라인 시연 엔진 ──
+   네트워크나 인증이 막힌 환경(로컬 파일, 행사장 등)에서
+   앱의 전체 흐름을 보여주기 위한 규칙 기반 추정. AI 진단이 아니다. */
+var RULES = [
+  { k: ["마우스","트랙볼","트랙패드"], v: {
+    item_name:"무선 마우스", category:"소형가전", confidence:"보통",
+    symptom:"사용 기간과 외관 마모로 보아 클릭 스위치 접점 마모 또는 배터리 접점 산화가 유력합니다.",
+    difficulty:"자가수리 가능",
+    steps:["바닥 미끄럼 패드를 떼고 나사를 풉니다","기판의 클릭 스위치 상태를 확인합니다","접점을 알코올로 닦거나 스위치를 교체합니다","조립 후 클릭 반응을 확인합니다"],
+    tools:["정밀 십자드라이버","이소프로필 알코올","면봉"],
+    cost_min:3000, cost_max:12000,
+    parts_risk:"조달 가능", parts_reason:"범용 마이크로 스위치라 부품 구입이 쉽습니다.",
+    safety:"" } },
+  { k: ["키보드","키캡","자판"], v: {
+    item_name:"키보드", category:"소형가전", confidence:"보통",
+    symptom:"특정 키만 반응하지 않거나 이중 입력되는 것은 키 하부 이물질 또는 스위치·멤브레인 접점 불량이 원인인 경우가 많습니다.",
+    difficulty:"자가수리 가능",
+    steps:["연결을 해제하고 눌리지 않는 키의 위치를 기록합니다","키캡 리무버로 해당 키캡을 뽑습니다","내부 이물질을 에어 블로어로 제거하고 접점을 알코올로 닦습니다","기계식이면 스위치를 교체하고, 멤브레인이면 접점 시트를 확인합니다","키캡을 끼우고 전체 키 입력을 점검합니다"],
+    tools:["키캡 리무버","에어 블로어","이소프로필 알코올"],
+    cost_min:0, cost_max:15000,
+    parts_risk:"조달 가능", parts_reason:"키캡과 스위치는 규격이 표준화돼 있어 개별 구입이 가능합니다.",
+    safety:"내부에 액체를 흘렸다면 완전히 건조되기 전에 전원을 연결하지 마세요." } },
+  { k: ["선풍기","서큘레이터","환풍"], v: {
+    item_name:"무선 선풍기", category:"소형가전", confidence:"보통",
+    symptom:"전원은 들어오는데 날개가 멈춘 것으로 보아 모터 축 고착 또는 모터 드라이버 고장이 유력합니다.",
+    difficulty:"자가수리 가능",
+    steps:["전원을 완전히 차단합니다","전면 그릴과 날개를 분리합니다","모터 축에 낀 먼지와 머리카락을 제거합니다","축에 윤활제를 소량 도포하고 손으로 돌려봅니다","조립 후 동작을 확인합니다"],
+    tools:["십자드라이버","윤활제","솔"],
+    cost_min:0, cost_max:8000,
+    parts_risk:"조달 가능", parts_reason:"청소만으로 해결되는 경우가 많아 부품이 필요 없습니다.",
+    safety:"내장 배터리 제품은 분해 시 배터리를 먼저 분리하세요." } },
+  { k: ["냉장고","김치냉장고","제빙"], v: {
+    item_name:"김치냉장고", category:"대형가전", confidence:"보통",
+    symptom:"냉기 저하와 바닥 누수는 배수구 막힘 또는 냉매 순환 계통 이상에서 흔히 나타납니다.",
+    difficulty:"전문가 필요",
+    steps:["전원을 뽑고 내용물을 옮깁니다","내부 배수구가 막혔는지 확인합니다","제조사 서비스센터에 부품 보유 여부를 문의합니다","단종 답변을 받으면 사설 수리업체 견적을 비교합니다"],
+    tools:["따뜻한 물","가는 관 청소솔"],
+    cost_min:80000, cost_max:250000,
+    parts_risk:"단종 우려", parts_reason:"출시 7년이 지난 모델은 제조사 부품 보유 기간이 끝난 경우가 많습니다.",
+    safety:"냉매 계통은 자가 수리 대상이 아닙니다. 반드시 전문가에게 맡기세요." } },
+  { k: ["스마트폰","갤럭시","아이폰","휴대폰","핸드폰","태블릿"], v: {
+    item_name:"스마트폰", category:"스마트폰", confidence:"보통",
+    symptom:"흔들면 잠깐 인식되는 증상은 충전 단자 내부 이물질 또는 단자 납땜 접점 불량을 시사합니다.",
+    difficulty:"부분 수리",
+    steps:["전원을 끄고 충전 단자를 밝은 곳에서 확인합니다","나무 이쑤시개로 먼지를 조심스럽게 긁어냅니다","다른 케이블로 교차 확인합니다","여전하면 단자 교체가 가능한 수리점에 문의합니다"],
+    tools:["나무 이쑤시개","에어 블로어","여분 케이블"],
+    cost_min:0, cost_max:60000,
+    parts_risk:"조달 가능", parts_reason:"충전 단자 모듈은 사설 수리 시장에서 널리 유통됩니다.",
+    safety:"금속 핀으로 단자를 긁으면 합선 위험이 있습니다." } },
+  { k: ["노트북","랩탑","맥북"], v: {
+    item_name:"노트북", category:"노트북", confidence:"낮음",
+    symptom:"발열과 성능 저하는 냉각 팬 먼지 누적과 서멀 구리스 경화에서 흔히 발생합니다.",
+    difficulty:"부분 수리",
+    steps:["전원과 배터리를 분리합니다","하판을 열어 냉각 팬과 방열핀 먼지를 제거합니다","서멀 구리스를 재도포합니다","조립 후 온도를 확인합니다"],
+    tools:["정밀 드라이버","에어 블로어","서멀 구리스"],
+    cost_min:10000, cost_max:70000,
+    parts_risk:"조달 가능", parts_reason:"소모품 위주라 구입이 어렵지 않습니다.",
+    safety:"내장 배터리는 눌리거나 찍히면 발화 위험이 있습니다." } },
+  { k: ["지퍼","패딩","옷","자켓","니트","코트"], v: {
+    item_name:"겨울 패딩 지퍼", category:"의류", confidence:"보통",
+    symptom:"올려도 아래가 벌어지는 것은 슬라이더가 벌어져 이빨을 물지 못하는 전형적인 증상입니다.",
+    difficulty:"자가수리 가능",
+    steps:["지퍼를 끝까지 내립니다","펜치로 슬라이더 양옆을 아주 조금씩 오므립니다","올려보며 물림을 확인합니다","그래도 벌어지면 슬라이더만 교체합니다"],
+    tools:["펜치","지퍼 슬라이더"],
+    cost_min:0, cost_max:5000,
+    parts_risk:"조달 가능", parts_reason:"규격 슬라이더는 수선집과 온라인에서 쉽게 구합니다.",
+    safety:"" } },
+  { k: ["의자","책상","서랍","가구","선반"], v: {
+    item_name:"사무용 의자", category:"가구", confidence:"낮음",
+    symptom:"높이가 내려앉는 증상은 가스 실린더 내부 압력 손실이 원인인 경우가 대부분입니다.",
+    difficulty:"자가수리 가능",
+    steps:["의자를 뒤집어 실린더 규격을 확인합니다","고무망치로 실린더를 분리합니다","같은 규격 실린더로 교체합니다","앉아서 높이 유지를 확인합니다"],
+    tools:["고무망치","파이프렌치","교체용 가스 실린더"],
+    cost_min:12000, cost_max:30000,
+    parts_risk:"조달 가능", parts_reason:"실린더는 규격이 표준화돼 있어 구입이 쉽습니다.",
+    safety:"" } },
+  { k: ["이어폰","헤드폰","버즈","에어팟"], v: {
+    item_name:"무선 이어폰", category:"소형가전", confidence:"보통",
+    symptom:"한쪽만 소리가 나거나 사용 시간이 짧아진 것은 내장 배터리 수명 저하가 유력합니다.",
+    difficulty:"수리 불가",
+    steps:["케이스 접점을 알코올로 닦아 충전 불량을 배제합니다","공장 초기화 후 재연결합니다","개선이 없으면 배터리 열화로 판단합니다"],
+    tools:["이소프로필 알코올","면봉"],
+    cost_min:0, cost_max:0,
+    parts_risk:"조달 불가", parts_reason:"본체가 접착 밀봉돼 있고 배터리가 별도 부품으로 판매되지 않습니다.",
+    safety:"밀봉된 리튬 배터리를 무리하게 분리하면 발화 위험이 큽니다." } },
+  { k: ["세탁기","건조기","식기세척기"], v: {
+    item_name:"드럼 세탁기", category:"대형가전", confidence:"낮음",
+    symptom:"배수 불량과 소음은 배수 필터 막힘 또는 배수 펌프 이물질이 흔한 원인입니다.",
+    difficulty:"부분 수리",
+    steps:["전원과 수도를 잠급니다","하단 배수 필터를 열어 이물질을 제거합니다","배수 호스가 꺾였는지 확인합니다","개선이 없으면 펌프 교체를 문의합니다"],
+    tools:["수건","납작 드라이버"],
+    cost_min:0, cost_max:120000,
+    parts_risk:"단종 우려", parts_reason:"연식이 오래된 모델은 펌프 모듈 재고가 소진된 경우가 있습니다.",
+    safety:"필터를 열면 잔수가 쏟아지니 수건을 미리 받치세요." } }
+];
+
+var FALLBACK = {
+  item_name:"미확인 생활용품", category:"기타", confidence:"낮음",
+  symptom:"설명만으로는 원인을 좁히기 어렵습니다. 증상이 나타나는 조건을 더 적어주세요.",
+  difficulty:"전문가 필요",
+  steps:["증상이 언제 나타나는지 기록합니다","전원과 케이블 등 외부 요인을 먼저 배제합니다","제조사에 부품 보유 여부를 문의합니다"],
+  tools:["없음"],
+  cost_min:0, cost_max:50000,
+  parts_risk:"단종 우려", parts_reason:"제품을 특정하지 못해 부품 상황을 확인할 수 없습니다.",
+  safety:""
+};
+
+function localDiagnose(note, hint) {
+  var t = String(note || "").toLowerCase();
+  for (var i = 0; i < RULES.length; i++) {
+    for (var j = 0; j < RULES[i].k.length; j++) {
+      if (t.indexOf(RULES[i].k[j].toLowerCase()) >= 0) {
+        return JSON.parse(JSON.stringify(RULES[i].v));
+      }
+    }
+  }
+  var fb = JSON.parse(JSON.stringify(FALLBACK));
+  if (hint) fb.item_name = hint;
+  return fb;
+}
+
+/* 모델이 규격을 살짝 벗어나도 화면이 깨지지 않게 정리한다 */
+var DIFFS = ["자가수리 가능", "부분 수리", "전문가 필요", "수리 불가"];
+var RISKS = ["조달 가능", "단종 우려", "조달 불가"];
+function pick(v, list, fallback) {
+  var s = String(v == null ? "" : v).replace(/\s+/g, "");
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].replace(/\s+/g, "") === s) return list[i];
+  }
+  return fallback;
+}
+function normalize(r) {
+  return {
+    item_name: r.item_name || "이름 미상",
+    category: CO2[r.category] ? r.category : "기타",
+    confidence: r.confidence || "보통",
+    symptom: r.symptom || "",
+    difficulty: pick(r.difficulty, DIFFS, "전문가 필요"),
+    steps: Array.isArray(r.steps) ? r.steps : [],
+    tools: Array.isArray(r.tools) ? r.tools : [],
+    cost_min: Number(r.cost_min) || 0,
+    cost_max: Number(r.cost_max) || 0,
+    parts_risk: pick(r.parts_risk, RISKS, "조달 가능"),
+    parts_reason: r.parts_reason || "",
+    safety: r.safety || ""
+  };
+}
+
+/* 진단 */
+document.getElementById("run").onclick = async function() {
+  var note = document.getElementById("note").value.trim();
+  if (!b64 && !note) return;
+  var btn = this, out = document.getElementById("out");
+  btn.disabled = true; btn.textContent = "진단하는 중";
+  out.innerHTML = "";
+  try {
+    var res = await fetch("/api/diagnose", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        note: note,
+        image: b64 ? { media_type: mime, data: b64 } : null
+      })
+    });
+    var data = await res.json();
+    if (!res.ok || !data || !data.result) {
+      throw new Error((data && data.error) ? data.error : ("응답 코드 " + res.status));
+    }
+    current = normalize(data.result);
+    out.innerHTML = slip(current) + '<button class="cta dark" id="save">수리 이력에 저장</button>';
+    document.getElementById("save").onclick = async function() {
+      records.unshift(Object.assign({}, current, {
+        id: Date.now(),
+        date: new Date().toISOString().slice(0,10),
+        co2: CO2[current.category] || CO2["기타"],
+        thumb: thumb
+      }));
+      var ok = await save();
+      this.disabled = true;
+      this.textContent = ok ? "이력에 저장됨" : "이 화면에만 저장됨";
+    };
+  } catch (e) {
+    demoMode = true;
+    current = normalize(localDiagnose(note, [A.item, A.item_free].filter(Boolean).join(" ").trim()));
+    out.innerHTML = slip(current, true) + '<button class="cta dark" id="save">수리 이력에 저장</button>';
+    document.getElementById("save").onclick = async function() {
+      records.unshift(Object.assign({}, current, {
+        id: Date.now(),
+        date: new Date().toISOString().slice(0,10),
+        co2: CO2[current.category] || CO2["기타"],
+        thumb: thumb
+      }));
+      var ok2 = await save();
+      this.disabled = true;
+      this.textContent = ok2 ? "이력에 저장됨" : "이 화면에만 저장됨";
+    };
+  }
+  btn.disabled = false; btn.textContent = "진단 받기";
+};
+
+/* 진단서 */
+function slip(r, isDemo) {
+  var co2 = CO2[r.category] || CO2["기타"];
+  var inEU = EU_SCOPE.indexOf(r.category) >= 0;
+  var risky = r.parts_risk !== "조달 가능";
+  var steps = (r.steps || []).map(function(s){ return "<li>" + esc(s) + "</li>"; }).join("");
+
+  return '<article class="slip">' +
+    (isDemo ? '<div class="demo">시연 모드 · 내장 규칙 기반 추정입니다. AI 진단이 아닙니다.</div>' : '') +
+    '<div class="slip-head"><div><h2>' + esc(r.item_name) + '</h2>' +
+    '<span class="cat">' + esc(r.category) + '</span></div>' +
+    '<span class="serial">No. ' + String(Date.now()).slice(-6) + '</span></div>' +
+
+    '<div class="verdict" data-level="' + esc(r.difficulty) + '">' + esc(r.difficulty) +
+    '<em>확신도 ' + esc(r.confidence) + '</em></div>' +
+
+    row("추정 원인", esc(r.symptom)) +
+    '<div class="row"><span class="row-label">수리 흐름</span>' +
+    pickDiagram(r.item_name, r.category) +
+    '<span class="sub">이해를 돕기 위한 개념도입니다. 실제 제품의 구조와 다를 수 있습니다.</span></div>' +
+    row("수리 방법", "<ol>" + steps + "</ol>") +
+    ((r.tools && r.tools.length) ? row("필요 공구", esc(r.tools.join(", "))) : "") +
+    row("예상 비용", num(r.cost_min) + "원 ~ " + num(r.cost_max) + "원") +
+    row("부품 조달", '<span class="' + (risky ? "flag" : "ok") + '">' + esc(r.parts_risk) +
+        '</span><span class="sub">' + esc(r.parts_reason) + '</span>') +
+
+    (r.safety ? '<p class="safety">' + esc(r.safety) + '</p>' : "") +
+
+    '<div class="gain">고쳐 쓰면 약 <b>' + co2 + 'kg</b> CO&#8322;e를 아낍니다' +
+    '<span class="sub">같은 제품을 새로 만들 때 나오는 배출량 추정치</span></div>' +
+
+    '<div class="eu">' + (inEU
+      ? "이 품목은 EU 수리권 지침(2024/1799) 적용 대상입니다. 유럽에서는 제조사가 합리적인 기간과 가격으로 수리를 제공할 의무가 있습니다."
+      : "이 품목은 EU 수리권 지침의 명시적 대상은 아닙니다. 한국에는 두 경우 모두 강제 규정이 없습니다.") +
+    '</div></article>';
+}
+function row(label, body) {
+  return '<div class="row"><span class="row-label">' + label + '</span><div class="row-body">' + body + '</div></div>';
+}
+
+/* 수리 이력 */
+function drawHistory() {
+  var el = document.getElementById("s2");
+  if (!records.length) {
+    el.innerHTML = '<p class="empty">아직 저장된 수리가 없습니다. 진단 탭에서 첫 물건을 올려보세요.</p>';
+    return;
+  }
+  var total = records.reduce(function(a,b){ return a + (b.co2||0); }, 0);
+  var fixed = records.filter(function(r){ return r.difficulty !== "수리 불가"; }).length;
+  var items = records.map(function(r){
+    return "<li>" + (r.thumb ? '<img src="' + r.thumb + '" alt="">' : "") +
+      "<div><b>" + esc(r.item_name) + "</b><span class=\"sub\">" +
+      esc(r.date) + " &middot; " + esc(r.difficulty) + " &middot; " + r.co2 + "kg</span></div></li>";
+  }).join("");
+
+  el.innerHTML =
+    '<div class="stats">' +
+      "<div><b>" + num(total) + "</b><span>kg CO&#8322;e 절감</span></div>" +
+      "<div><b>" + fixed + "</b><span>건 수리 가능</span></div>" +
+      "<div><b>" + records.length + "</b><span>건 진단</span></div>" +
+    "</div><ul class=\"list\">" + items + "</ul>" +
+    '<button class="reset" id="reset">이력 전체 지우기</button>';
+
+  document.getElementById("reset").onclick = async function() {
+    records = []; await save(); drawHistory();
+  };
+}
+
+/* 수리권 데이터 */
+function drawPolicy() {
+  var el = document.getElementById("s3");
+  var blocked = records.filter(function(r){ return r.parts_risk !== "조달 가능"; });
+  var byCat = {};
+  blocked.forEach(function(r){ byCat[r.category] = (byCat[r.category]||0) + 1; });
+  var lost = blocked.reduce(function(a,b){ return a + (b.co2||0); }, 0);
+
+  var html = '<p class="lede">한국에는 전자폐기물이 얼마나 발생하고 왜 수리되지 못하는지 보여주는 공식 통계가 없습니다. 이 화면은 사용자들의 수리 실패 기록을 모아 그 빈칸을 채웁니다.</p>' +
+    '<div class="bigstat"><b>' + blocked.length + '</b><span>건이 부품 때문에 막혔습니다</span></div>';
+
+  if (blocked.length) {
+    html += '<div class="bars">' + Object.keys(byCat).map(function(k){
+      return '<div class="bar"><span>' + esc(k) + '</span><i style="width:' +
+        ((byCat[k]/blocked.length)*100) + '%"></i><em>' + byCat[k] + '</em></div>';
+    }).join("") + "</div>" +
+    '<p class="lost">고칠 수 있었다면 아끼는 양: 약 ' + num(lost) + 'kg CO&#8322;e</p>' +
+    '<button class="cta" id="brief">정책 브리프 만들기</button><div id="briefout"></div>';
+  } else {
+    html += '<p class="empty">아직 부품 문제로 막힌 기록이 없습니다.</p>';
+  }
+  el.innerHTML = html;
+
+  var bb = document.getElementById("brief");
+  if (bb) bb.onclick = async function() {
+    var btn = this, o = document.getElementById("briefout");
+    btn.disabled = true; btn.textContent = "작성하는 중"; o.innerHTML = "";
+    try {
+      var rows = blocked.map(function(r){
+        return "- " + r.item_name + "(" + r.category + ") / " + r.parts_risk + " / 사유: " + r.parts_reason;
+      }).join("\n");
+      var res = await fetch("/api/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt:
+            "아래는 시민들이 수리를 시도했으나 부품 조달 문제로 막힌 사례 기록입니다.\n\n" + rows +
+            "\n\n이 데이터를 근거로 한국의 수리권 제도 개선을 요구하는 짧은 정책 브리프를 작성하세요.\n" +
+            "조건:\n- 400자 내외, 한국어\n- 구성: 관찰된 문제 / 데이터가 보여주는 것 / 제안하는 조치\n" +
+            "- 현재 순환경제사회 전환 촉진법 제20조가 권고 수준에 머무는 점을 언급\n" +
+            "- 과장 없이 데이터가 뒷받침하는 범위에서만 주장\n- 표본이 작으면 그 한계를 솔직히 명시\n- 마크다운 없이 평문으로"
+        })
+      });
+      var data = await res.json();
+      if (!res.ok || !data || !data.text) throw new Error("brief");
+      o.innerHTML = '<div class="brief">' + esc(data.text) + "</div>";
+    } catch (e) {
+      var cats = Object.keys(byCat).join(", ");
+      o.innerHTML = '<div class="brief">' + esc(
+        "[시연 모드 · 내장 서식으로 작성된 예시입니다]\n\n" +
+        "관찰된 문제\n" +
+        "이용자들이 수리를 시도했으나 부품을 구할 수 없어 중단된 사례가 " + blocked.length + "건 기록됐습니다. " +
+        "해당 품목군은 " + cats + "입니다.\n\n" +
+        "데이터가 보여주는 것\n" +
+        "고장의 원인이 수리 기술의 부재가 아니라 부품 공급의 단절에 있다는 점입니다. " +
+        "고칠 수 있었다면 약 " + lost + "kg CO2e의 배출을 피할 수 있었습니다. " +
+        "다만 표본이 " + blocked.length + "건에 불과해 전국 실태를 대표하지는 못합니다.\n\n" +
+        "제안하는 조치\n" +
+        "현행 순환경제사회 전환 촉진법 제20조는 예비부품 확보를 권고하는 데 그칩니다. " +
+        "부품 의무 보유 기간을 품목별로 명시하고, 보유 현황을 공개하도록 전환할 필요가 있습니다. " +
+        "아울러 수리 실패 사유를 수집하는 공식 통계 체계가 마련돼야 합니다."
+      ) + "</div>";
+    }
+    btn.disabled = false; btn.textContent = "정책 브리프 만들기";
+  };
+}
+
+load();
+
+/* 오프라인 실행과 홈 화면 설치를 위한 등록 */
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("./sw.js").catch(function(){ /* 설치 불가 환경은 무시 */ });
+  });
+}
+</script>
